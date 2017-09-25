@@ -85,8 +85,8 @@ def update_params(Y_, Q_, ib0_):
     return (Bstar_, lower_bound_)
 
 def state_bound(M_):
-    bound_ = np.sum(np.logaddexp.reduce(M_, axis = 1))
-    #bound_ = np.logaddexp.reduce(M_[:-1,])
+    #bound_ = np.sum(np.logaddexp.reduce(M_, axis = 1))
+    bound_ = np.logaddexp.reduce(M_[-1,:])
     return (bound_)
 
 def VBE(pi0_, A_, B_, lower_bound_):
