@@ -38,7 +38,7 @@ def pass_message_backward(A_, B_):
 
 def sync_Q(M_, R_):
     Qu_ = M_ + R_
-    logQ_ = (Qu_.T - nu.log_sum_across_row(Qu_)).T
+    logQ_ = (Qu_.T - np.logaddexp.reduce(Qu_, axis = 1)).T
     Q_ = np.exp(logQ_)
     return (Q_)
 
@@ -47,7 +47,7 @@ def sync_N(M_, R_, A_, B_):
     xi_ = np.zeros((T_ - 1, K_, K_))
     for t in range(0, T_ - 1):
         xi_[t,:] = (A_.T + M_[t,:]).T + B_[(t+1),:] + R_[(t+1),:]
-    xi_ = xi_ - nu.log_sum_vector(M_[-1,:])
+    xi_ = xi_ - np.logaddexp.reduce(M_[-1,:])
     N_ = np.sum(np.exp(xi_), axis = 0)
     return (N_)
 
