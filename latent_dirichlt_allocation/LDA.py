@@ -11,7 +11,6 @@ import numpy as np
 import entropy
 import numerical_utils as nu
 import log_expectation as le
-import sys
 
 def random_initialization(K_, D_, alpha_, gamma_):
     theta_ = nu.log(np.random.dirichlet(alpha_, size = D_))
@@ -88,14 +87,14 @@ def LDA(Y_, K_, D_, V_, eps = np.power(0.1, 3)):
     partial_lower_bound_ = np.nan_to_num(-np.inf)
     continue_ = True
     while (continue_):
-        sys.stdout.write('|')
+        print('*', end = '')
         phi_, lower_bound_ = VBE(Y_, K_, D_, theta_, beta_, partial_lower_bound_)
         theta_, beta_, partial_lower_bound_ = VBM(Y_, K_, D_, V_, phi_, alpha_, gamma_)
         lower_bound = np.append(lower_bound, lower_bound_)
         if (lower_bound.size > 2):
             if ((np.exp(lower_bound[-1] - lower_bound[-2]) - 1) < eps):
                 continue_ = False
-                sys.stdout.write('  done!\n')
+                print('  done!')
     print('theta')
     print(np.exp(theta_))
     print('beta')
