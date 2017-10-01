@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 # Hidden Markov Model with Categorical Distribution
 
 __author__ = 'billhuang'
@@ -13,8 +15,7 @@ def random_initialization(Y_, J_):
     pi0_ = nu.log(np.random.dirichlet(np.ones(J_)))
     A_ = nu.log(np.random.dirichlet(np.ones(J_), size = J_))
     Bstar_ = nu.log(np.random.dirichlet(np.ones(C_), size = J_))
-    B_ = sync_B(Y_, Bstar_)
-    return (pi0_, A_, B_)
+    return (pi0_, A_, Bstar_)
     
 def sync_B(Y_, Bstar_):
     BstarT_ = Bstar_.T
@@ -89,7 +90,8 @@ def state_bound(M_):
     bound_ = np.logaddexp.reduce(M_[-1,:])
     return (bound_)
 
-def VBE(pi0_, A_, B_, lower_bound_):
+def VBE(Y_, pi0_, A_, Bstar_, lower_bound_):
+    B_ = sync_B(Y_, Bstar_)
     M_ = pass_message_forward(pi0_, A_, B_)
     lower_bound_ += state_bound(M_)
     R_ = pass_message_backward(A_, B_)
@@ -101,24 +103,29 @@ def VBM(Y_, Q_, N_, ipi0_, ia0_, ib0_):
     pi0_, lb1_ = sync_pi0(Q_[0,:], ipi0_)
     A_, lb2_ = sync_A(N_, ia0_)
     Bstar_, lb3_ = update_params(Y_, Q_, ib0_)
-    B_ = sync_B(Y_, Bstar_)
     lower_bound_ = lb1_ + lb2_ + lb3_
-    return (pi0_, A_, B_, lower_bound_)
+    return (pi0_, A_, Bstar_, lower_bound_)
 
 def HMM(Y_, J_, eps = np.power(0.1, 3)):
+    print('Start Inference...')
     ipi0_ = np.ones(J_)
     ia0_ = np.ones(J_)
     ib0_ = np.ones(np.unique(Y_).size)
-    pi0_, A_, B_ = random_initialization(Y_, J_)
+    pi0_, A_, Bstar_ = random_initialization(Y_, J_)
     lower_bound = np.array([])
     partial_lower_bound_ = np.nan_to_num(-np.inf)
     continue_ = True
     while (continue_):
-        Q_, N_, lower_bound_ = VBE(pi0_, A_, B_, partial_lower_bound_)
-        pi0_, A_, B_, partial_lower_bound_ = VBM(Y_, Q_, N_, ipi0_, ia0_, ib0_)
+        print('*', end = '')
+        Q_, N_, lower_bound_ = VBE(Y_, pi0_, A_, Bstar_, partial_lower_bound_)
+        pi0_, A_, Bstar_, partial_lower_bound_ = VBM(Y_, Q_, N_, ipi0_, ia0_, ib0_)
         lower_bound = np.append(lower_bound, lower_bound_)
         if (lower_bound.size > 2):
             if ((np.exp(lower_bound[-1] - lower_bound[-2]) - 1) < eps):
                 continue_ = False
-    hidden_state_ = np.argmax(Q_, axis = 1)
-    return (hidden_state_)
+                print('  done!')
+    print('A')
+    print(A_)
+    print('B')
+    print(Bstar_)
+    
